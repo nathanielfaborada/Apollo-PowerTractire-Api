@@ -1,0 +1,8 @@
+{
+  "ignore": [
+    "src/core/database.json",
+    "logs/*",
+    "*.log"
+  ]
+}
+

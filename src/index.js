@@ -8,6 +8,7 @@ import morgan from "morgan";
 
 import v1 from "./routes/v1/index.js";
 import "./core/database.js";
+import { initializeDatabase } from "./core/initDatabase.js";
 
 /* ================= CONFIG ================= */
 
@@ -56,9 +57,16 @@ app.use("/", v1);
 
 /* ================= START SERVER ================= */
 
-server.listen(PORT, "0.0.0.0", () => {
-  console.log(
-    `CLIENT reached with URL ${process.env.CLIENT_URL} && http://localhost:5173`,
-  );
-  console.log(`🚀 Server running on port ${PORT}`);
+initializeDatabase().then(() => {
+  server.listen(PORT, "0.0.0.0", () => {
+    console.log(
+      `CLIENT reached with URL ${process.env.CLIENT_URL} && http://localhost:5173`,
+    );
+    console.log(`🚀 Server running on port ${PORT}`);
+  });
+}).catch(err => {
+  console.error("❌ Database initialization error:", err);
+  server.listen(PORT, "0.0.0.0", () => {
+    console.log(`🚀 Server running on port ${PORT} (with DB warning)`);
+  });
 });

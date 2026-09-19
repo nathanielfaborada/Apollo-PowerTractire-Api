@@ -1,48 +1,56 @@
 import pg from 'pg';
-import { Logger }  from '../utils/Logger.js';
+import dotenv from 'dotenv';
+import { Logger } from '../utils/Logger.js';
+
+dotenv.config();
 
 export class RailwayConnection {
   constructor() {
     this.logger = new Logger('RailwayConnection');
     this.pool = null;
     this.isConnected = false;
-    this.connectionPromise = null; // Store the connection promise
+    this.connectionPromise = null;
   }
 
-async connect() {
-    // If already connecting, return the existing promise
+  async connect() {
     if (this.connectionPromise) {
       return this.connectionPromise;
     }
 
     this.connectionPromise = (async () => {
       try {
-        this.pool = pg.createPool({
-          host: process.env.PGHOST,
-          user: process.env.PGUSER,
-          password: process.env.PGPASSWORD,
-          database: process.env.PGDATABASE,
-          port: process.env.PGPORT || 3000,
-          waitForConnections: true,
-          connectionLimit: 10,
-          queueLimit: 0,
-          idleTimeout: 60000,
-          enableKeepAlive: true,
-          keepAliveInitialDelay: 0
-        });
+        const connectionString = process.env.DATABASE_URL || process.env.DATABASE_PUBLIC_URL;
+
+        const isRailway = connectionString && (connectionString.includes('rlwy.net') || connectionString.includes('railway'));
+
+        const poolConfig = connectionString
+          ? {
+              connectionString,
+              ssl: isRailway || process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+            }
+          : {
+              host: process.env.PGHOST || 'localhost',
+              user: process.env.PGUSER || 'postgres',
+              password: process.env.PGPASSWORD,
+              database: process.env.PGDATABASE || 'railway',
+              port: process.env.PGPORT ? parseInt(process.env.PGPORT) : 5432,
+              ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+            };
+
+        this.pool = new pg.Pool(poolConfig);
 
         // Test connection
-        const connection = await this.pool.getConnection();
-        const [rows] = await connection.query('SELECT 1 as connected');
-        connection.release();
+        const client = await this.pool.connect();
+        const res = await client.query('SELECT 1 as connected, current_database() as db');
+        client.release();
 
         this.isConnected = true;
-        this.logger.info('PostgreSQL connected successfully');
+        this.logger.info(`PostgreSQL connected successfully [DB: ${res.rows[0].db}]`);
         
         return this;
       } catch (error) {
-        this.logger.error('Failed to connect to PostgreSQL:', error);
-        this.connectionPromise = null; // Reset on error
+        this.logger.error('Failed to connect to PostgreSQL:', { error: error.message });
+        this.connectionPromise = null;
         throw error;
       }
     })();
@@ -61,56 +69,44 @@ async connect() {
 
   async query(sql, params = []) {
     await this.ensureConnected();
-    
     try {
-      const [rows] = await this.pool.query(sql, params);
-      return rows;
+      const result = await this.pool.query(sql, params);
+      return result.rows;
     } catch (error) {
-      this.logger.error('PostgreSQL query error:', { sql, params, error });
+      this.logger.error('PostgreSQL query error:', { sql, params, error: error.message });
       throw error;
     }
   }
 
   async execute(sql, params = []) {
-    await this.ensureConnected();
-    
-    try {
-      const [result] = await this.pool.execute(sql, params);
-      return result;
-    } catch (error) {
-      this.logger.error('PostgreSQL execute error:', { sql, params, error });
-      throw error;
-    }
+    return this.query(sql, params);
   }
 
   async transaction(callback) {
     await this.ensureConnected();
-    const connection = await this.pool.getConnection();
+    const client = await this.pool.connect();
     
     try {
-      await connection.beginTransaction();
-      const result = await callback(connection);
-      await connection.commit();
+      await client.query('BEGIN');
+      const result = await callback(client);
+      await client.query('COMMIT');
       return result;
     } catch (error) {
-      await connection.rollback();
+      await client.query('ROLLBACK');
+      this.logger.error('PostgreSQL transaction rollback:', { error: error.message });
       throw error;
     } finally {
-      connection.release();
+      client.release();
     }
   }
 
-  async getConnection() {
+  async getClient() {
     await this.ensureConnected();
-    return await this.pool.getConnection();
+    return await this.pool.connect();
   }
 
-  escape(value) {
-    return mysql.escape(value);
-  }
-
-  escapeId(value) {
-    return mysql.escapeId(value);
+  async getConnection() {
+    return this.getClient();
   }
 
   async disconnect() {
@@ -125,11 +121,6 @@ async connect() {
 }
 
 // Create singleton instance
-const postgresConnection = new PostgreSQLConnection();
+const railwayConnection = new RailwayConnection();
 
-// Auto-connect when the module is imported
-postgresConnection.connect().catch(error => {
-  console.error('Failed to auto-connect PostgreSQL:', error);
-});
-
-export { postgresConnection };
+export { railwayConnection };

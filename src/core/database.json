@@ -1,0 +1,170 @@
+{
+  "database_name": "railway",
+  "tables": {
+    "access_requests": {
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer"
+        },
+        "email": {
+          "name": "email",
+          "type": "character varying"
+        },
+        "status": {
+          "name": "status",
+          "type": "character varying"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp without time zone"
+        }
+      }
+    },
+    "app_users": {
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer"
+        },
+        "email": {
+          "name": "email",
+          "type": "character varying"
+        },
+        "password_hash": {
+          "name": "password_hash",
+          "type": "character varying"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp without time zone"
+        }
+      }
+    },
+    "chat_history": {
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer"
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "integer"
+        },
+        "message": {
+          "name": "message",
+          "type": "character varying"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone"
+        }
+      }
+    },
+    "facebook_users": {
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer"
+        },
+        "psid": {
+          "name": "psid",
+          "type": "character varying"
+        },
+        "name": {
+          "name": "name",
+          "type": "character varying"
+        },
+        "chat_count": {
+          "name": "chat_count",
+          "type": "integer"
+        },
+        "last_active_at": {
+          "name": "last_active_at",
+          "type": "timestamp with time zone"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone"
+        },
+        "profile_pic": {
+          "name": "profile_pic",
+          "type": "text"
+        },
+        "locale": {
+          "name": "locale",
+          "type": "character varying"
+        },
+        "timezone": {
+          "name": "timezone",
+          "type": "integer"
+        }
+      }
+    },
+    "sync_meta": {
+      "columns": {
+        "key": {
+          "name": "key",
+          "type": "text"
+        },
+        "value": {
+          "name": "value",
+          "type": "text"
+        }
+      }
+    },
+    "tires": {
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "character varying"
+        },
+        "tire_size": {
+          "name": "tire_size",
+          "type": "character varying"
+        },
+        "brand": {
+          "name": "brand",
+          "type": "character varying"
+        },
+        "model": {
+          "name": "model",
+          "type": "character varying"
+        },
+        "available_qty": {
+          "name": "available_qty",
+          "type": "integer"
+        },
+        "warehouse": {
+          "name": "warehouse",
+          "type": "character varying"
+        },
+        "dot": {
+          "name": "dot",
+          "type": "character varying"
+        },
+        "category": {
+          "name": "category",
+          "type": "character varying"
+        },
+        "sku": {
+          "name": "sku",
+          "type": "character varying"
+        },
+        "status": {
+          "name": "status",
+          "type": "character varying"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone"
+        }
+      }
+    }
+  },
+  "generated_at": "2026-09-19T07:44:12.973Z"
+}
